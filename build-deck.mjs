@@ -1,6 +1,6 @@
 // Deck fill builder — deterministic, key-free, no deps. Produces
 // companies/<slug>/canva-fill.json: the flat token -> string dataset the Canva
-// master (13 slides) is filled with by
+// master (14 pages) is filled with by
 // /audit-report. The old Gamma deck.md path is retired.
 //
 //   node audit/build-deck.mjs <slug>
@@ -115,13 +115,20 @@ const DIM_LABEL = {
   reddit: "Reddit", podcasts: "Podcasts", youtube: "YouTube", executive_social: "Executive Social",
   third_party_mentions: "Third-Party Mentions", community_forums: "Community Forums",
 };
-// sentence-boundary trim so rationales sit inside fixed slide frames
+// Character caps enforced on generated rationale text so it fits its slide frame.
+// rationale: slides 11/12 tables — 600px cells, ~60-70 chars/line, 3 lines before
+// the next row (rows ~113px apart, 24.7px line height). fix: slide 13 cards.
+const CAPS = { rationale: 200, fix: 160 };
+// Sentence-boundary trim: pack whole sentences up to the cap (greedy), accept any
+// boundary past 25% of the cap so a short clean first sentence beats a long
+// mid-thought "..." cut. Word-boundary "..." only when even sentence 1 overruns.
 const trimAt = (s, n) => {
   s = String(s ?? "").trim();
   if (s.length <= n) return s;
-  const cut = s.slice(0, n);
-  const end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("; "));
-  return (end > n * 0.5 ? cut.slice(0, end + 1) : s.slice(0, n - 3).replace(/\s+\S*$/, "") + "...").trim();
+  const cut = s.slice(0, n + 1);
+  const end = Math.max(...[". ", "! ", "? ", "; "].map((b) => cut.lastIndexOf(b)));
+  if (end >= Math.ceil(n / 4)) return cut.slice(0, end + 1).trim();
+  return (s.slice(0, n - 3).replace(/\s+\S*$/, "") + "...").trim();
 };
 
 const els = [];
@@ -147,6 +154,9 @@ const best4 = deckEls.filter((e) => e.score >= 4)
 const worst4 = deckEls.filter((e) => !e.verify_first && e.score <= 2)
   .sort((a, b) => a.score - b.score || b.priority - a.priority).slice(0, 4);
 const dimCount = (label) => els.filter((e) => e.lever === label).length;
+// Lever rollup scores (slide 10 scoreboard). One decimal on the 0-5 scale;
+// empty for pre-v2.2 companies without levers.json, matching the dim_* pattern.
+const leverScore = (k) => (typeof levers.levers?.[k]?.score === "number" ? levers.levers[k].score.toFixed(1) : "");
 
 // Top-3 fixes by priority (importance x gap), deduped by element, max across the two tracks.
 const prio = [...(levers.priorities?.discoverability ?? []), ...(levers.priorities?.assessment ?? [])]
@@ -174,11 +184,11 @@ const canvaFill = {
       ?? (fixTop[n - 1] ? els.find((e) => e.id === fixTop[n - 1].element) : null);
     const legacy = [tokens.rep_top_fix, tokens.content_top_fix, tokens.site_top_fix][n - 1];
     return [
-      [`fix_${n}`, overrides[`fix_${n}`] ?? (el ? deDash(trimAt(el.rationale, 160)) : legacy)],
+      [`fix_${n}`, overrides[`fix_${n}`] ?? (el ? deDash(trimAt(el.rationale, CAPS.fix)) : legacy)],
       [`fix_label_${n}`, el ? `${el.lever} - ${el.label}` : ""],
     ];
   })),
-  // v2.3 tokens: prompt/response counts (slide 3), dimension counts (slides 9-10), best/worst tables (slides 10-11)
+  // v2.3 tokens: prompt/response counts (slide 3), dimension counts (slide 9), lever scores (slide 10), best/worst tables (slides 11-12), fixes (slide 13)
   disc_prompt_number: String(nPrompts("discoverability") || ""),
   assess_prompt_number: String(nPrompts("assessment") || ""),
   disc_response_number: String(nResponses("discoverability") || ""),
@@ -187,18 +197,20 @@ const canvaFill = {
   dim_access: String(dimCount("Access") || ""), dim_identity: String(dimCount("Identity") || ""),
   dim_content: String(dimCount("Content") || ""), dim_reputation: String(dimCount("Reputation") || ""),
   dim_total: String(els.length || ""),
+  score_access: leverScore("access"), score_identity: leverScore("identity"),
+  score_content: leverScore("content"), score_reputation: leverScore("reputation"),
   ...Object.fromEntries([0, 1, 2, 3].flatMap((i) => {
     const e = best4[i]; // N/A fill when fewer than 4 elements clear the >=4 bar
     return [
       [`best_lever_${i + 1}`, e?.lever ?? "N/A"], [`best_dim_${i + 1}`, e?.label ?? "N/A"],
-      [`best_score_${i + 1}`, e ? String(e.score) : "N/A"], [`best_rationale_${i + 1}`, e ? deDash(trimAt(e.rationale, 140)) : "N/A"],
+      [`best_score_${i + 1}`, e ? String(e.score) : "N/A"], [`best_rationale_${i + 1}`, e ? deDash(trimAt(e.rationale, CAPS.rationale)) : "N/A"],
     ];
   })),
   ...Object.fromEntries([0, 1, 2, 3].flatMap((i) => {
     const e = worst4[i]; // N/A fill when fewer than 4 elements sit at <=2
     return [
       [`worst_lever_${i + 1}`, e?.lever ?? "N/A"], [`worst_dim_${i + 1}`, e?.label ?? "N/A"],
-      [`worst_score_${i + 1}`, e ? String(e.score) : "N/A"], [`worst_rationale_${i + 1}`, e ? deDash(trimAt(e.rationale, 140)) : "N/A"],
+      [`worst_score_${i + 1}`, e ? String(e.score) : "N/A"], [`worst_rationale_${i + 1}`, e ? deDash(trimAt(e.rationale, CAPS.rationale)) : "N/A"],
     ];
   })),
   sov_table: tokens.sov_table, top_cited_domains: tokens.top_cited_domains,
@@ -219,10 +231,13 @@ const LIMITS = {
   company: 30, audit_date: 20,
   disc_example_prompt: 130, assess_example_prompt: 130,
   disc_gap: 130, assess_gap: 130, cited_insight: 160, sov_insight: 130,
-  fix_1: 160, fix_2: 160, fix_3: 160,
+  fix_1: CAPS.fix, fix_2: CAPS.fix, fix_3: CAPS.fix,
   fix_label_1: 44, fix_label_2: 44, fix_label_3: 44,
   rep_summary: 110, content_summary: 110, site_summary: 110,
   rep_top_fix: 160, content_top_fix: 160, site_top_fix: 160,
+  ...Object.fromEntries([1, 2, 3, 4].flatMap((n) => [
+    [`best_rationale_${n}`, CAPS.rationale], [`worst_rationale_${n}`, CAPS.rationale],
+  ])),
 };
 const over = Object.keys(LIMITS)
   .filter((k) => typeof canvaFill[k] === "string" && canvaFill[k].length > LIMITS[k])

@@ -180,9 +180,9 @@ ${el.anchors}
 FROZEN FACTS (the only evidence you may use; do not assume anything not present here):
 ${factsBlob}
 
-Rules: choose the integer 0-5 whose anchor best matches the facts. If facts are thin or marked directional/fallback, do not award extreme scores without support. Provide 1-3 evidence quotes COPIED VERBATIM from the facts above. No em dashes anywhere in your output.
+Rules: choose the integer 0-5 whose anchor best matches the facts. If facts are thin or marked directional/fallback, do not award extreme scores without support. Provide 1-3 evidence quotes COPIED VERBATIM from the facts above. No em dashes anywhere in your output. Your FIRST reasoning sentence must stand alone as a complete deck-ready summary of the verdict in under 180 characters (the deck prints only what fits; later sentences carry the detail).
 
-Return ONLY JSON: {"reasoning": "<2-4 sentences against the anchors>", "score": <0-5 integer>, "evidence": ["<verbatim substring of the facts>", ...]}`;
+Return ONLY JSON: {"reasoning": "<2-4 sentences against the anchors; sentence 1 = standalone summary under 180 chars>", "score": <0-5 integer>, "evidence": ["<verbatim substring of the facts>", ...]}`;
 
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {

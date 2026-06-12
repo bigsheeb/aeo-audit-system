@@ -1,7 +1,10 @@
 {
   "slug": "northwind",
   "company": "Northwind Pay",
-  "profile": { "primary": "plg_saas", "secondary": "crypto_infra" },
+  "profile": {
+    "primary": "plg_saas",
+    "secondary": "crypto_infra"
+  },
   "judge_model": "anthropic/claude-sonnet-4.6",
   "scored_at": "2026-06-11T17:20:00.000Z",
   "synthetic": true,
@@ -10,79 +13,897 @@
     "access": {
       "score": 4.5,
       "elements": {
-        "ai_crawler_access": { "job": "gate", "tier": "T1", "score": 5, "basis": "mechanical", "rationale": "no AI search/user bot blocked in robots or at the edge", "importance": { "discoverability": 4.7, "assessment": 4.8 }, "local_evidence": { "discoverability": { "share": 0.86, "cited": 31, "total": 84 }, "assessment": { "share": 1, "cited": 44, "total": 78 } }, "priority": 0 },
-        "search_index_presence": { "job": "gate", "tier": "T2", "score": 3, "basis": "mechanical", "indeterminate": true, "rationale": "present where determinable, others indeterminate (bing=null, brave=true) — verify before prescribing", "importance": { "discoverability": 4, "assessment": 4 }, "local_evidence": { "discoverability": { "share": 0.86, "cited": 31, "total": 84 }, "assessment": { "share": 1, "cited": 44, "total": 78 } }, "priority": null, "verify_first": true },
-        "fetchability_no_js": { "job": "gate", "tier": "T1", "score": 5, "basis": "mechanical", "rationale": "full raw-HTML parity across the 8 sampled pages", "importance": { "discoverability": 4.7, "assessment": 4.8 }, "local_evidence": { "discoverability": { "share": 0.86, "cited": 31, "total": 84 }, "assessment": { "share": 1, "cited": 44, "total": 78 } }, "priority": 0 },
-        "crawl_coverage": { "job": "assess", "tier": "T2", "score": 5, "basis": "mechanical", "rationale": "sitemap + canonicals + shallow paths to every key page", "importance": { "assessment": 4 }, "local_evidence": { "assessment": { "share": 1, "cited": 44, "total": 78 } }, "priority": 0 }
+        "ai_crawler_access": {
+          "job": "gate",
+          "tier": "T1",
+          "score": 5,
+          "basis": "mechanical",
+          "rationale": "no AI search/user bot blocked in robots or at the edge",
+          "importance": {
+            "discoverability": 4.6,
+            "assessment": 5.0
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.86,
+              "cited": 31,
+              "total": 84
+            },
+            "assessment": {
+              "share": 1,
+              "cited": 44,
+              "total": 78
+            }
+          },
+          "priority": 0
+        },
+        "search_index_presence": {
+          "job": "gate",
+          "tier": "T2",
+          "score": 3,
+          "basis": "mechanical",
+          "indeterminate": true,
+          "rationale": "present where determinable, others indeterminate (bing=null, brave=true) \u2014 verify before prescribing",
+          "importance": {
+            "discoverability": 4.2,
+            "assessment": 4.6
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.86,
+              "cited": 31,
+              "total": 84
+            },
+            "assessment": {
+              "share": 1,
+              "cited": 44,
+              "total": 78
+            }
+          },
+          "priority": null,
+          "verify_first": true
+        },
+        "fetchability_no_js": {
+          "job": "gate",
+          "tier": "T1",
+          "score": 5,
+          "basis": "mechanical",
+          "rationale": "full raw-HTML parity across the 8 sampled pages",
+          "importance": {
+            "discoverability": 4.6,
+            "assessment": 5.0
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.86,
+              "cited": 31,
+              "total": 84
+            },
+            "assessment": {
+              "share": 1,
+              "cited": 44,
+              "total": 78
+            }
+          },
+          "priority": 0
+        },
+        "crawl_coverage": {
+          "job": "assess",
+          "tier": "T2",
+          "score": 5,
+          "basis": "mechanical",
+          "rationale": "sitemap + canonicals + shallow paths to every key page",
+          "importance": {
+            "assessment": 4.6
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 1,
+              "cited": 44,
+              "total": 78
+            }
+          },
+          "priority": 0
+        }
       }
     },
     "identity": {
       "score": 3.6,
       "elements": {
-        "company_home": { "job": "assess", "tier": "T2", "score": 4, "basis": "judged", "rationale": "Canonical /company page with founders, funding, and the claim sentence; relationship to licensed partners stated", "evidence": ["Northwind Pay is a stablecoin payouts API for marketplaces"], "evidence_validated": true, "importance": { "assessment": 3.9 }, "local_evidence": { "assessment": { "share": 0.93, "cited": 41, "total": 78 } }, "priority": 3.9 },
-        "offering_home": { "job": "assess", "tier": "T2", "score": 4, "basis": "judged", "rationale": "Payouts, pay-ins, and treasury each have an own-domain claim-form page; sandbox is satellite-only", "evidence": ["docs.northwindpay.com hosts the sandbox quickstart"], "evidence_validated": true, "importance": { "assessment": 3.9 }, "local_evidence": { "assessment": { "share": 0.93, "cited": 41, "total": 78 } }, "priority": 3.9 },
-        "branded_faq": { "job": "assess", "tier": "T2", "score": 3, "basis": "judged", "rationale": "FAQ covers licensing and custody but not the by-name comparison questions the audit asked", "evidence": ["Is Northwind Pay a licensed money transmitter?"], "evidence_validated": true, "importance": { "assessment": 3.9 }, "local_evidence": { "assessment": { "share": 0.93, "cited": 41, "total": 78 } }, "priority": 7.8 },
-        "entity_schema": { "job": "assess", "tier": "T3", "score": 4, "basis": "mechanical", "rationale": "Organization + Product JSON-LD with sameAs to LinkedIn/Crunchbase/GitHub; Person markup missing", "importance": { "assessment": 3.5 }, "local_evidence": { "assessment": { "share": 1, "cited": 44, "total": 78 } }, "priority": 3.5 },
-        "name_binding": { "job": "assess", "tier": "T2 + own data", "score": 5, "basis": "judged", "rationale": "Zero wrong-entity answers in 9 by-name responses; the Microsoft sample-database namesake never surfaced", "evidence": ["0 of 9 assessment answers flagged wrong_entity"], "evidence_validated": true, "importance": { "assessment": 2.2 }, "local_evidence": { "assessment": { "share": 0, "cited": 0, "total": 9 } }, "priority": 0 },
-        "directory_consistency": { "job": "assess", "tier": "T2", "score": 3, "basis": "judged", "rationale": "Crunchbase current; LinkedIn descriptor still says 'crypto payments startup', off the regulated-payouts positioning", "evidence": ["LinkedIn: crypto payments startup"], "evidence_validated": true, "importance": { "assessment": 2.6 }, "local_evidence": { "assessment": { "share": 0.09, "cited": 7, "total": 78 } }, "priority": 5.2 },
-        "wikipedia_wikidata": { "job": "both", "tier": "T2", "score": 2, "basis": "judged", "rationale": "No Wikipedia article (notability thin at Series A); Wikidata stub only; crypto stand-ins absent", "evidence": ["en.wikipedia.org/wiki/Northwind_Pay returns 404"], "evidence_validated": true, "importance": { "discoverability": 2.4, "assessment": 2.5 }, "local_evidence": { "discoverability": { "share": 0.02, "cited": 2, "total": 84 }, "assessment": { "share": 0.05, "cited": 4, "total": 78 } }, "priority": 7.5 }
+        "company_home": {
+          "job": "assess",
+          "tier": "T2",
+          "score": 4,
+          "basis": "judged",
+          "rationale": "Canonical /company page with founders, funding, and the claim sentence; relationship to licensed partners stated",
+          "evidence": [
+            "Northwind Pay is a stablecoin payouts API for marketplaces"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "assessment": 4.4
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 0.93,
+              "cited": 41,
+              "total": 78
+            }
+          },
+          "priority": 4.4
+        },
+        "offering_home": {
+          "job": "assess",
+          "tier": "T2",
+          "score": 4,
+          "basis": "judged",
+          "rationale": "Payouts, pay-ins, and treasury each have an own-domain claim-form page; sandbox is satellite-only",
+          "evidence": [
+            "docs.northwindpay.com hosts the sandbox quickstart"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "assessment": 4.4
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 0.93,
+              "cited": 41,
+              "total": 78
+            }
+          },
+          "priority": 4.4
+        },
+        "branded_faq": {
+          "job": "assess",
+          "tier": "T2",
+          "score": 3,
+          "basis": "judged",
+          "rationale": "FAQ covers licensing and custody but not the by-name comparison questions the audit asked",
+          "evidence": [
+            "Is Northwind Pay a licensed money transmitter?"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "assessment": 4.4
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 0.93,
+              "cited": 41,
+              "total": 78
+            }
+          },
+          "priority": 8.8
+        },
+        "entity_schema": {
+          "job": "assess",
+          "tier": "T3",
+          "score": 4,
+          "basis": "mechanical",
+          "rationale": "Organization + Product JSON-LD with sameAs to LinkedIn/Crunchbase/GitHub; Person markup missing",
+          "importance": {
+            "assessment": 4.3
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 1,
+              "cited": 44,
+              "total": 78
+            }
+          },
+          "priority": 4.3
+        },
+        "name_binding": {
+          "job": "assess",
+          "tier": "T2 + own data",
+          "score": 5,
+          "basis": "judged",
+          "rationale": "Zero wrong-entity answers in 9 by-name responses; the Microsoft sample-database namesake never surfaced",
+          "evidence": [
+            "0 of 9 assessment answers flagged wrong_entity"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "assessment": 1.6
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 0,
+              "cited": 0,
+              "total": 9
+            }
+          },
+          "priority": 0
+        },
+        "directory_consistency": {
+          "job": "assess",
+          "tier": "T2",
+          "score": 3,
+          "basis": "judged",
+          "rationale": "Crunchbase current; LinkedIn descriptor still says 'crypto payments startup', off the regulated-payouts positioning",
+          "evidence": [
+            "LinkedIn: crypto payments startup"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "assessment": 1.9
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 0.09,
+              "cited": 7,
+              "total": 78
+            }
+          },
+          "priority": 3.8
+        },
+        "wikipedia_wikidata": {
+          "job": "both",
+          "tier": "T2",
+          "score": 2,
+          "basis": "judged",
+          "rationale": "No Wikipedia article (notability thin at Series A); Wikidata stub only; crypto stand-ins absent",
+          "evidence": [
+            "en.wikipedia.org/wiki/Northwind_Pay returns 404"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 1.7,
+            "assessment": 1.8
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.02,
+              "cited": 2,
+              "total": 84
+            },
+            "assessment": {
+              "share": 0.05,
+              "cited": 4,
+              "total": 78
+            }
+          },
+          "priority": 5.4
+        }
       }
     },
     "content": {
       "score": 3.2,
       "elements": {
-        "original_research_data": { "job": "disc", "tier": "T1", "score": 3, "basis": "judged", "rationale": "One strong asset (2025 Stablecoin Payouts Benchmark) but a single PDF, not a recurring HTML report", "evidence": ["2025 Stablecoin Payouts Benchmark (PDF)"], "evidence_validated": true, "importance": { "discoverability": 4 }, "local_evidence": { "discoverability": { "share": 0.5, "cited": 18, "total": 84 } }, "priority": 8 },
-        "category_guides": { "job": "both", "tier": "T2", "score": 2, "basis": "judged", "rationale": "Guides exist for 2 of 6 category terms; 'stablecoin payouts' definitional queries resolve to a competitor's explainer", "evidence": ["No own-domain guide for stablecoin-as-a-service"], "evidence_validated": true, "importance": { "discoverability": 3.7, "assessment": 3.2 }, "local_evidence": { "discoverability": { "share": 0.43, "cited": 15, "total": 84 } }, "priority": 11.1 },
-        "comparison_pages": { "job": "both", "tier": "T2", "score": 1, "basis": "judged", "rationale": "No comparison or alternatives pages; rivals' own product pages won 22 of 84 category citations", "evidence": ["0 dedicated vs/alternatives pages found"], "evidence_validated": true, "importance": { "discoverability": 3.9, "assessment": 3.1 }, "local_evidence": { "discoverability": { "share": 0.55, "cited": 22, "total": 84 } }, "priority": 15.6 },
-        "case_studies": { "job": "both", "tier": "T2 (inference)", "score": 3, "basis": "judged", "rationale": "Three named case studies with concrete numbers, newest 14 months old", "evidence": ["Marketplace payouts in 41 countries for Lumenly"], "evidence_validated": true, "importance": { "discoverability": 3.2, "assessment": 3.2 }, "local_evidence": { "assessment": { "share": 0.36, "cited": 16, "total": 78 } }, "priority": 6.4 },
-        "blog_engine": { "job": "disc", "tier": "T2", "score": 4, "basis": "judged", "rationale": "Steady cadence, 8 of last 12 posts answer-shaped and buyer-aimed", "evidence": ["8 of 12 posts classified evergreen_answer"], "evidence_validated": true, "importance": { "discoverability": 3.4 }, "local_evidence": { "discoverability": { "share": 0.31, "cited": 11, "total": 84 } }, "priority": 3.4 },
-        "answer_structure": { "job": "both", "tier": "T2", "score": 4, "basis": "judged", "rationale": "Answer-first intros and Q&A headings across the sample; product pages open with liftable claims", "evidence": ["Northwind Pay settles stablecoin payouts in 41 countries"], "evidence_validated": true, "importance": { "discoverability": 3.9, "assessment": 4 }, "local_evidence": { "assessment": { "share": 1, "cited": 44, "total": 78 } }, "priority": 4 },
-        "content_freshness": { "job": "both", "tier": "T1/T2", "score": 4, "basis": "mechanical", "rationale": "latest dated content 2026-05-28 (14d old); dates on 6/8 sampled pages", "importance": { "discoverability": 4.3, "assessment": 4.4 }, "local_evidence": { "assessment": { "share": 1, "cited": 44, "total": 78 } }, "priority": 4.4 },
-        "pricing_transparency": { "job": "both", "tier": "T2", "score": 4, "basis": "judged", "rationale": "Public per-payout pricing with volume tiers a model can quote; enterprise tier gated", "evidence": ["0.4% per payout, volume tiers listed"], "evidence_validated": true, "importance": { "discoverability": 3.9, "assessment": 3.9 }, "local_evidence": { "assessment": { "share": 0.88, "cited": 39, "total": 78 } }, "priority": 3.9 },
-        "developer_docs": { "job": "both", "tier": "T2 + own data", "score": 4, "basis": "judged", "rationale": "docs.northwindpay.com fetchable, opens with a quotable definition; API reference complete", "evidence": ["Northwind Pay is a single API for stablecoin pay-ins and payouts"], "evidence_validated": true, "importance": { "discoverability": 3.3, "assessment": 3.5 }, "local_evidence": { "assessment": { "share": 0.25, "cited": 11, "total": 78 } }, "priority": 3.5 }
+        "original_research_data": {
+          "job": "disc",
+          "tier": "T1",
+          "score": 3,
+          "basis": "judged",
+          "rationale": "One strong asset (2025 Stablecoin Payouts Benchmark) but a single PDF, not a recurring HTML report",
+          "evidence": [
+            "2025 Stablecoin Payouts Benchmark (PDF)"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 3.5
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.5,
+              "cited": 18,
+              "total": 84
+            }
+          },
+          "priority": 7.0
+        },
+        "category_guides": {
+          "job": "both",
+          "tier": "T2",
+          "score": 2,
+          "basis": "judged",
+          "rationale": "Guides exist for 2 of 6 category terms; 'stablecoin payouts' definitional queries resolve to a competitor's explainer",
+          "evidence": [
+            "No own-domain guide for stablecoin-as-a-service"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 2.9,
+            "assessment": 3.2
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.43,
+              "cited": 15,
+              "total": 84
+            }
+          },
+          "priority": 9.6
+        },
+        "comparison_pages": {
+          "job": "both",
+          "tier": "T2",
+          "score": 1,
+          "basis": "judged",
+          "rationale": "No comparison or alternatives pages; rivals' own product pages won 22 of 84 category citations",
+          "evidence": [
+            "0 dedicated vs/alternatives pages found"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 3.2,
+            "assessment": 3.1
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.55,
+              "cited": 22,
+              "total": 84
+            }
+          },
+          "priority": 12.8
+        },
+        "case_studies": {
+          "job": "both",
+          "tier": "T2 (inference)",
+          "score": 3,
+          "basis": "judged",
+          "rationale": "Three named case studies with concrete numbers, newest 14 months old",
+          "evidence": [
+            "Marketplace payouts in 41 countries for Lumenly"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 3.2,
+            "assessment": 2.7
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 0.36,
+              "cited": 16,
+              "total": 78
+            }
+          },
+          "priority": 6.4
+        },
+        "blog_engine": {
+          "job": "disc",
+          "tier": "T2",
+          "score": 4,
+          "basis": "judged",
+          "rationale": "Steady cadence, 8 of last 12 posts answer-shaped and buyer-aimed",
+          "evidence": [
+            "8 of 12 posts classified evergreen_answer"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 2.5
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.31,
+              "cited": 11,
+              "total": 84
+            }
+          },
+          "priority": 2.5
+        },
+        "answer_structure": {
+          "job": "both",
+          "tier": "T2",
+          "score": 4,
+          "basis": "judged",
+          "rationale": "Answer-first intros and Q&A headings across the sample; product pages open with liftable claims",
+          "evidence": [
+            "Northwind Pay settles stablecoin payouts in 41 countries"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 3.9,
+            "assessment": 4.6
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 1,
+              "cited": 44,
+              "total": 78
+            }
+          },
+          "priority": 4.6
+        },
+        "content_freshness": {
+          "job": "both",
+          "tier": "T1/T2",
+          "score": 4,
+          "basis": "mechanical",
+          "rationale": "latest dated content 2026-05-28 (14d old); dates on 6/8 sampled pages",
+          "importance": {
+            "discoverability": 4.3,
+            "assessment": 4.8
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 1,
+              "cited": 44,
+              "total": 78
+            }
+          },
+          "priority": 4.8
+        },
+        "pricing_transparency": {
+          "job": "both",
+          "tier": "T2",
+          "score": 4,
+          "basis": "judged",
+          "rationale": "Public per-payout pricing with volume tiers a model can quote; enterprise tier gated",
+          "evidence": [
+            "0.4% per payout, volume tiers listed"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 3.9,
+            "assessment": 4.2
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 0.88,
+              "cited": 39,
+              "total": 78
+            }
+          },
+          "priority": 4.2
+        },
+        "developer_docs": {
+          "job": "both",
+          "tier": "T2 + own data",
+          "score": 4,
+          "basis": "judged",
+          "rationale": "docs.northwindpay.com fetchable, opens with a quotable definition; API reference complete",
+          "evidence": [
+            "Northwind Pay is a single API for stablecoin pay-ins and payouts"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 3.3,
+            "assessment": 2.4
+          },
+          "local_evidence": {
+            "assessment": {
+              "share": 0.25,
+              "cited": 11,
+              "total": 78
+            }
+          },
+          "priority": 3.3
+        }
       }
     },
     "reputation": {
       "score": 2.1,
       "elements": {
-        "press_earned_media": { "job": "disc", "tier": "T1", "score": 2, "basis": "judged", "rationale": "Seed and Series A covered (TechCrunch, Fortune Term Sheet); nothing original since, wire echoes only", "evidence": ["Last original feature 2025-09"], "evidence_validated": true, "importance": { "discoverability": 3.8 }, "local_evidence": { "discoverability": { "share": 0.1, "cited": 4, "total": 84 } }, "priority": 11.4 },
-        "listicles": { "job": "disc", "tier": "T1", "score": 1, "basis": "judged", "rationale": "Absent from 9 of 11 checked roundups including all 4 the measured answers actually cited", "evidence": ["Absent from 'Best stablecoin payout APIs 2026' (cited in 3 answers)"], "evidence_validated": true, "importance": { "discoverability": 4.5 }, "local_evidence": { "discoverability": { "share": 0.71, "cited": 25, "total": 84 } }, "priority": 18 },
-        "third_party_validation": { "job": "both", "tier": "T2", "score": 3, "basis": "judged", "rationale": "G2 listed and current (4.6, 38 reviews); no analyst or crypto-desk coverage yet", "evidence": ["G2: 4.6 across 38 reviews, last review 2026-05"], "evidence_validated": true, "importance": { "discoverability": 2.8, "assessment": 2.8 }, "local_evidence": { "discoverability": { "share": 0.06, "cited": 2, "total": 84 } }, "priority": 5.6 },
-        "reddit": { "job": "disc", "tier": "T1 (volatile)", "score": 2, "basis": "judged", "rationale": "Thin organic presence; two neutral threads in r/fintech, no negative narrative", "evidence": ["2 organic threads, neutral tone"], "evidence_validated": true, "importance": { "discoverability": 3.1 }, "local_evidence": { "discoverability": { "share": 0.02, "cited": 1, "total": 84 } }, "priority": 9.3 },
-        "podcasts": { "job": "disc", "tier": "T2", "score": 1, "basis": "judged", "rationale": "One regional fintech podcast appearance; no transcribed flagship shows", "evidence": ["1 episode found, no transcript"], "evidence_validated": true, "importance": { "discoverability": 2.2 }, "local_evidence": { "discoverability": { "share": 0, "cited": 0, "total": 84 } }, "priority": 8.8 },
-        "youtube": { "job": "disc", "tier": "T2", "score": 2, "basis": "judged", "rationale": "Owned channel with 6 demo videos, transcripts on; zero third-party coverage", "evidence": ["6 owned videos, 0 earned"], "evidence_validated": true, "importance": { "discoverability": 2.3 }, "local_evidence": { "discoverability": { "share": 0.01, "cited": 1, "total": 84 } }, "priority": 6.9 },
-        "executive_social": { "job": "disc", "tier": "T2/T3", "score": 3, "basis": "judged", "rationale": "CEO posts weekly on LinkedIn with real substance on payout infrastructure; modest reach", "evidence": ["Weekly substantive posts on category topics"], "evidence_validated": true, "importance": { "discoverability": 2 }, "local_evidence": { "discoverability": { "share": 0.04, "cited": 3, "total": 84 } }, "priority": 4 },
-        "third_party_mentions": { "job": "disc", "tier": "T1", "score": 2, "basis": "judged", "rationale": "Sparse mention graph outside funding news; co-mentions with the category aging", "evidence": ["Mention scan: sparse, funding-news weighted"], "evidence_validated": true, "importance": { "discoverability": 3.6 }, "local_evidence": { "discoverability": { "share": 0.19, "cited": 16, "total": 84 } }, "priority": 10.8 },
-        "community_forums": { "job": "disc", "tier": "T2-T3", "score": 2, "basis": "judged", "rationale": "One organic HN thread on the benchmark report, neutral-positive; nothing since", "evidence": ["1 HN thread, 2025-11"], "evidence_validated": true, "importance": { "discoverability": 2.1 }, "local_evidence": { "discoverability": { "share": 0.01, "cited": 1, "total": 84 } }, "priority": 6.3 }
+        "press_earned_media": {
+          "job": "disc",
+          "tier": "T1",
+          "score": 2,
+          "basis": "judged",
+          "rationale": "Seed and Series A covered (TechCrunch, Fortune Term Sheet); nothing original since, wire echoes only",
+          "evidence": [
+            "Last original feature 2025-09"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 2.3
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.1,
+              "cited": 4,
+              "total": 84
+            }
+          },
+          "priority": 6.9
+        },
+        "listicles": {
+          "job": "disc",
+          "tier": "T1",
+          "score": 1,
+          "basis": "judged",
+          "rationale": "Absent from 9 of 11 checked roundups including all 4 the measured answers actually cited",
+          "evidence": [
+            "Absent from 'Best stablecoin payout APIs 2026' (cited in 3 answers)"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 4.1
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.71,
+              "cited": 25,
+              "total": 84
+            }
+          },
+          "priority": 16.4
+        },
+        "third_party_validation": {
+          "job": "both",
+          "tier": "T2",
+          "score": 3,
+          "basis": "judged",
+          "rationale": "G2 listed and current (4.6, 38 reviews); no analyst or crypto-desk coverage yet",
+          "evidence": [
+            "G2: 4.6 across 38 reviews, last review 2026-05"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 1.8,
+            "assessment": 2.8
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.06,
+              "cited": 2,
+              "total": 84
+            }
+          },
+          "priority": 5.6
+        },
+        "reddit": {
+          "job": "disc",
+          "tier": "T1 (volatile)",
+          "score": 2,
+          "basis": "judged",
+          "rationale": "Thin organic presence; two neutral threads in r/fintech, no negative narrative",
+          "evidence": [
+            "2 organic threads, neutral tone"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 2.1
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.02,
+              "cited": 1,
+              "total": 84
+            }
+          },
+          "priority": 6.3
+        },
+        "podcasts": {
+          "job": "disc",
+          "tier": "T2",
+          "score": 1,
+          "basis": "judged",
+          "rationale": "One regional fintech podcast appearance; no transcribed flagship shows",
+          "evidence": [
+            "1 episode found, no transcript"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 1.6
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0,
+              "cited": 0,
+              "total": 84
+            }
+          },
+          "priority": 6.4
+        },
+        "youtube": {
+          "job": "disc",
+          "tier": "T2",
+          "score": 2,
+          "basis": "judged",
+          "rationale": "Owned channel with 6 demo videos, transcripts on; zero third-party coverage",
+          "evidence": [
+            "6 owned videos, 0 earned"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 1.6
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.01,
+              "cited": 1,
+              "total": 84
+            }
+          },
+          "priority": 4.8
+        },
+        "executive_social": {
+          "job": "disc",
+          "tier": "T2/T3",
+          "score": 3,
+          "basis": "judged",
+          "rationale": "CEO posts weekly on LinkedIn with real substance on payout infrastructure; modest reach",
+          "evidence": [
+            "Weekly substantive posts on category topics"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 1.6
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.04,
+              "cited": 3,
+              "total": 84
+            }
+          },
+          "priority": 3.2
+        },
+        "third_party_mentions": {
+          "job": "disc",
+          "tier": "T1",
+          "score": 2,
+          "basis": "judged",
+          "rationale": "Sparse mention graph outside funding news; co-mentions with the category aging",
+          "evidence": [
+            "Mention scan: sparse, funding-news weighted"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 2.6
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.19,
+              "cited": 16,
+              "total": 84
+            }
+          },
+          "priority": 7.8
+        },
+        "community_forums": {
+          "job": "disc",
+          "tier": "T2-T3",
+          "score": 2,
+          "basis": "judged",
+          "rationale": "One organic HN thread on the benchmark report, neutral-positive; nothing since",
+          "evidence": [
+            "1 HN thread, 2025-11"
+          ],
+          "evidence_validated": true,
+          "importance": {
+            "discoverability": 1.6
+          },
+          "local_evidence": {
+            "discoverability": {
+              "share": 0.01,
+              "cited": 1,
+              "total": 84
+            }
+          },
+          "priority": 4.8
+        }
       }
     }
   },
-  "jobs": { "discoverability_levers": 2.9, "assessment_levers": 3.8 },
+  "jobs": {
+    "discoverability_levers": 2.9,
+    "assessment_levers": 3.8
+  },
   "priorities": {
     "discoverability": [
-      { "element": "listicles", "lever": "reputation", "priority": 18, "importance": 4.5, "score": 1, "gap": 4 },
-      { "element": "comparison_pages", "lever": "content", "priority": 15.6, "importance": 3.9, "score": 1, "gap": 4 },
-      { "element": "press_earned_media", "lever": "reputation", "priority": 11.4, "importance": 3.8, "score": 2, "gap": 3 },
-      { "element": "category_guides", "lever": "content", "priority": 11.1, "importance": 3.7, "score": 2, "gap": 3 },
-      { "element": "third_party_mentions", "lever": "reputation", "priority": 10.8, "importance": 3.6, "score": 2, "gap": 3 },
-      { "element": "reddit", "lever": "reputation", "priority": 9.3, "importance": 3.1, "score": 2, "gap": 3 },
-      { "element": "podcasts", "lever": "reputation", "priority": 8.8, "importance": 2.2, "score": 1, "gap": 4 },
-      { "element": "original_research_data", "lever": "content", "priority": 8, "importance": 4, "score": 3, "gap": 2 },
-      { "element": "wikipedia_wikidata", "lever": "identity", "priority": 7.2, "importance": 2.4, "score": 2, "gap": 3 }
+      {
+        "element": "listicles",
+        "lever": "reputation",
+        "priority": 16.4,
+        "importance": 4.1,
+        "score": 1,
+        "gap": 4
+      },
+      {
+        "element": "comparison_pages",
+        "lever": "content",
+        "priority": 12.8,
+        "importance": 3.2,
+        "score": 1,
+        "gap": 4
+      },
+      {
+        "element": "category_guides",
+        "lever": "content",
+        "priority": 8.7,
+        "importance": 2.9,
+        "score": 2,
+        "gap": 3
+      },
+      {
+        "element": "third_party_mentions",
+        "lever": "reputation",
+        "priority": 7.8,
+        "importance": 2.6,
+        "score": 2,
+        "gap": 3
+      },
+      {
+        "element": "original_research_data",
+        "lever": "content",
+        "priority": 7.0,
+        "importance": 3.5,
+        "score": 3,
+        "gap": 2
+      },
+      {
+        "element": "press_earned_media",
+        "lever": "reputation",
+        "priority": 6.9,
+        "importance": 2.3,
+        "score": 2,
+        "gap": 3
+      },
+      {
+        "element": "podcasts",
+        "lever": "reputation",
+        "priority": 6.4,
+        "importance": 1.6,
+        "score": 1,
+        "gap": 4
+      },
+      {
+        "element": "reddit",
+        "lever": "reputation",
+        "priority": 6.3,
+        "importance": 2.1,
+        "score": 2,
+        "gap": 3
+      },
+      {
+        "element": "wikipedia_wikidata",
+        "lever": "identity",
+        "priority": 5.1,
+        "importance": 1.7,
+        "score": 2,
+        "gap": 3
+      },
+      {
+        "element": "youtube",
+        "lever": "reputation",
+        "priority": 4.8,
+        "importance": 1.6,
+        "score": 2,
+        "gap": 3
+      },
+      {
+        "element": "community_forums",
+        "lever": "reputation",
+        "priority": 4.8,
+        "importance": 1.6,
+        "score": 2,
+        "gap": 3
+      },
+      {
+        "element": "third_party_validation",
+        "lever": "reputation",
+        "priority": 3.6,
+        "importance": 1.8,
+        "score": 3,
+        "gap": 2
+      },
+      {
+        "element": "executive_social",
+        "lever": "reputation",
+        "priority": 3.2,
+        "importance": 1.6,
+        "score": 3,
+        "gap": 2
+      },
+      {
+        "element": "blog_engine",
+        "lever": "content",
+        "priority": 2.5,
+        "importance": 2.5,
+        "score": 4,
+        "gap": 1
+      }
     ],
     "assessment": [
-      { "element": "branded_faq", "lever": "identity", "priority": 7.8, "importance": 3.9, "score": 3, "gap": 2 },
-      { "element": "wikipedia_wikidata", "lever": "identity", "priority": 7.5, "importance": 2.5, "score": 2, "gap": 3 },
-      { "element": "case_studies", "lever": "content", "priority": 6.4, "importance": 3.2, "score": 3, "gap": 2 },
-      { "element": "directory_consistency", "lever": "identity", "priority": 5.2, "importance": 2.6, "score": 3, "gap": 2 }
+      {
+        "element": "branded_faq",
+        "lever": "identity",
+        "priority": 8.8,
+        "importance": 4.4,
+        "score": 3,
+        "gap": 2
+      },
+      {
+        "element": "wikipedia_wikidata",
+        "lever": "identity",
+        "priority": 5.4,
+        "importance": 1.8,
+        "score": 2,
+        "gap": 3
+      },
+      {
+        "element": "case_studies",
+        "lever": "content",
+        "priority": 5.4,
+        "importance": 2.7,
+        "score": 3,
+        "gap": 2
+      },
+      {
+        "element": "content_freshness",
+        "lever": "content",
+        "priority": 4.8,
+        "importance": 4.8,
+        "score": 4,
+        "gap": 1
+      },
+      {
+        "element": "answer_structure",
+        "lever": "content",
+        "priority": 4.6,
+        "importance": 4.6,
+        "score": 4,
+        "gap": 1
+      },
+      {
+        "element": "company_home",
+        "lever": "identity",
+        "priority": 4.4,
+        "importance": 4.4,
+        "score": 4,
+        "gap": 1
+      },
+      {
+        "element": "offering_home",
+        "lever": "identity",
+        "priority": 4.4,
+        "importance": 4.4,
+        "score": 4,
+        "gap": 1
+      },
+      {
+        "element": "entity_schema",
+        "lever": "identity",
+        "priority": 4.3,
+        "importance": 4.3,
+        "score": 4,
+        "gap": 1
+      },
+      {
+        "element": "pricing_transparency",
+        "lever": "content",
+        "priority": 4.2,
+        "importance": 4.2,
+        "score": 4,
+        "gap": 1
+      },
+      {
+        "element": "directory_consistency",
+        "lever": "identity",
+        "priority": 3.8,
+        "importance": 1.9,
+        "score": 3,
+        "gap": 2
+      },
+      {
+        "element": "developer_docs",
+        "lever": "content",
+        "priority": 2.4,
+        "importance": 2.4,
+        "score": 4,
+        "gap": 1
+      }
     ]
   },
-  "verify_first": ["search_index_presence"],
+  "verify_first": [
+    "search_index_presence"
+  ],
   "not_applicable": [],
-  "needs_review": ["category_guides", "third_party_mentions"],
+  "needs_review": [
+    "category_guides",
+    "third_party_mentions"
+  ],
   "missing_facts": [],
   "risk_register": [],
-  "importance_config": { "w_global": 0.5, "w_local": 0.5, "computed_at": "2026-06-11T17:20:00.000Z" },
+  "importance_config": {
+    "w_global": 0.25,
+    "w_local": 0.75,
+    "computed_at": "2026-06-12T14:30:00.000Z"
+  },
   "framework_version": "2.3",
-  "rubric_version": "2.3"
+  "rubric_version": "2.4"
 }

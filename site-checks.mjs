@@ -14,6 +14,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { stripTags, internalLinks, sitemapLocs } from "./lib/html.mjs";
 
 const slug = process.argv[2];
 if (!slug) throw new Error("usage: node site-checks.mjs <slug> [domain]");
@@ -40,11 +41,7 @@ async function get(url) {
 }
 
 // ---- HTML extraction helpers (no deps) ----
-const stripTags = (html) => html
-  .replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ")
-  .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ").replace(/<svg[\s\S]*?<\/svg>/gi, " ")
-  .replace(/<[^>]+>/g, " ").replace(/&(amp|lt|gt|quot|#39|nbsp);/g, (m) => ({ "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&nbsp;": " " }[m]))
-  .replace(/\s+/g, " ").trim();
+// stripTags / internalLinks / sitemapLocs live in lib/html.mjs (shared + tested).
 
 const headings = (html) => [...html.matchAll(/<h([1-3])[^>]*>([\s\S]*?)<\/h\1>/gi)]
   .map((m) => `h${m[1]}: ${stripTags(m[2]).slice(0, 120)}`).slice(0, 20);
@@ -84,22 +81,6 @@ const faqSignals = (html) => ({
   details_blocks: (html.match(/<details[\s>]/gi) || []).length,
 });
 
-const internalLinks = (html) => {
-  const links = new Map();
-  for (const m of html.matchAll(/<a[^>]+href=["']([^"'#?]+)[^"']*["'][^>]*>([\s\S]*?)<\/a>/gi)) {
-    let href = m[1].trim();
-    if (/^(mailto:|tel:|javascript:)/i.test(href)) continue;
-    if (href.startsWith("//")) href = "https:" + href;
-    try {
-      const u = href.startsWith("http") ? new URL(href) : new URL(href, origin + "/");
-      if (u.hostname.replace(/^www\./, "") !== domain) continue;
-      const path = u.pathname.replace(/\/$/, "") || "/";
-      if (!links.has(path)) links.set(path, stripTags(m[2]).slice(0, 60));
-    } catch {}
-  }
-  return links;
-};
-
 function analyzePage(url, res) {
   const html = res.html;
   const text = stripTags(html);
@@ -125,14 +106,53 @@ function analyzePage(url, res) {
 console.log(`site-checks: ${domain}`);
 const home = await get(origin + "/");
 if (!home.ok) console.warn(`! homepage ${home.status ?? home.error}`);
-const nav = internalLinks(home.html);
+const nav = internalLinks(home.html, origin, domain);
+const homeNavKeys = new Set(nav.keys());
+
+// sitemap (fetched up front so it can backfill nav discovery). AI crawlers
+// execute no JS, so a JS-rendered menu — or markup the link parser can't reach —
+// leaves the homepage with too few internal links to find about/pricing/blog.
+// When that happens, mine the sitemap for the named pages instead of letting
+// the sample collapse to the homepage alone.
+const sm = await get(origin + "/sitemap.xml");
+const smIndex = !sm.ok ? await get(origin + "/sitemap_index.xml") : null;
+const sitemapReal = (r) => r?.ok && /<(urlset|sitemapindex)/i.test(r.html);
+const smOk = sitemapReal(sm) ? sm : sitemapReal(smIndex) ? smIndex : null;
+
+async function sitemapPaths(r) {
+  let urls = sitemapLocs(r.html);
+  if (/<sitemapindex/i.test(r.html)) {            // index → fetch a couple child sitemaps
+    const children = urls.slice(0, 2);
+    urls = [];
+    for (const c of children) { const cr = await get(c); if (cr.ok) urls.push(...sitemapLocs(cr.html)); }
+  }
+  const paths = [];
+  for (const u of urls) {
+    try {
+      const url = new URL(u);
+      if (url.hostname.replace(/^www\./, "") !== domain) continue;
+      paths.push(url.pathname.replace(/\/$/, "") || "/");
+    } catch {}
+  }
+  return [...new Set(paths)];
+}
+
+const NAV_MIN = 5;
+if (nav.size < NAV_MIN && smOk) {
+  const paths = await sitemapPaths(smOk);
+  for (const p of paths) if (!nav.has(p)) nav.set(p, "");
+  if (nav.size > homeNavKeys.size) console.warn(`! homepage nav thin (${homeNavKeys.size} links); backfilled ${nav.size - homeNavKeys.size} paths from sitemap`);
+}
 
 const pick = (re) => [...nav.keys()].find((p) => re.test(p));
 const aboutPath = pick(/^\/(about|company|who-we-are|about-us|team)$/i) ?? pick(/about|company/i);
 const pricingPath = pick(/^\/pricing/i) ?? pick(/pricing/i);
 const blogPath = pick(/^\/(blog|insights|resources|news|newsroom)$/i) ?? pick(/blog|insights|newsroom/i);
 const skip = new Set(["/", aboutPath, pricingPath, blogPath, "/privacy", "/terms", "/careers", "/legal", "/cookies", "/contact"]);
-const navPages = [...nav.keys()].filter((p) => !skip.has(p) && !/privacy|terms|careers|legal|cookie|contact|login|signin|search/i.test(p)).slice(0, 4);
+// "nav-prominent" pages come from the homepage menu; only fall back to the
+// backfilled (sitemap) pool when the homepage yielded no usable nav at all.
+const navSource = homeNavKeys.size ? [...homeNavKeys] : [...nav.keys()];
+const navPages = navSource.filter((p) => !skip.has(p) && !/privacy|terms|careers|legal|cookie|contact|login|signin|search/i.test(p)).slice(0, 4);
 
 // Reuse a previously frozen sample when present.
 let prior = null;
@@ -154,12 +174,16 @@ for (const url of sampleUrls) {
   await sleep(200);
 }
 
+if (pages.length <= 1) {
+  console.warn(`!! sample collapsed to ${pages.length} page (no about/pricing/blog/nav pages discovered). content_freshness and coverage facts will be unreliable — a false content_freshness=0 is likely. Check homepage nav parsing and sitemap.xml.`);
+}
+
 // blog: pull last 12 post links from the blog index
 let posts = [];
 const blogIndex = pages.find((p) => blogPath && p.url === origin + blogPath);
 if (blogIndex) {
   const blogRes = await get(blogIndex.url);
-  const links = [...internalLinks(blogRes.html).keys()]
+  const links = [...internalLinks(blogRes.html, origin, domain).keys()]
     .filter((p) => blogPath && p.startsWith(blogPath + "/") && p.length > blogPath.length + 1)
     .slice(0, 12);
   for (const p of links) {
@@ -170,10 +194,7 @@ if (blogIndex) {
   }
 }
 
-// sitemap + llms.txt
-const sm = await get(origin + "/sitemap.xml");
-const smIndex = !sm.ok ? await get(origin + "/sitemap_index.xml") : null;
-const sitemapReal = (r) => r?.ok && /<(urlset|sitemapindex)/i.test(r.html);
+// llms.txt (sitemap was fetched up front for nav backfill)
 const llms = await get(origin + "/llms.txt");
 const llmsReal = llms.ok && !/<(!doctype|html)/i.test(llms.html.slice(0, 200));
 
@@ -198,7 +219,7 @@ const facts = {
     },
     crawl_coverage: {
       facts: {
-        sitemap_real: sitemapReal(sm) || sitemapReal(smIndex),
+        sitemap_real: Boolean(smOk),
         sitemap_status: sm.status,
         canonical_on_sample: pages.filter((p) => p.canonical).length + "/" + pages.length,
         homepage_og_type: pages[0]?.og_type ?? null,

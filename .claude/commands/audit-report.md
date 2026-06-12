@@ -17,7 +17,7 @@ Read `.claude/context/aeo-audit-framework.md`. Then check, and STOP if any fails
 
 ## Master setup (one-time, operator)
 
-The Canva master ("AI Visibility Report", 13 slides, whose design id you resolve at runtime via `search-designs`) is the template every prospect clones. Each dynamic element's text must be its `[[token]]` placeholder — the exact field names emitted in `companies/<slug>/canva-fill.json`. The v2.3 token families: scoreboard rates + insights, share-of-voice rows, cited-domain rows, prompt/response counts, `run_disclosure`, per-lever dimension counts (`dim_*`), the best/worst element tables (`best_*` / `worst_*` x4), and the priority-ranked fixes (`fix_label_1..3` + `fix_1..3`). Rules for the master:
+The Canva master ("AI Visibility Report", 14 pages, whose design id you resolve at runtime via `search-designs`) is the template every prospect clones. Each dynamic element's text must be its `[[token]]` placeholder — the exact field names emitted in `companies/<slug>/canva-fill.json` (lowercase; a `[[Company]]`-style case mismatch silently never fills). Token map by slide: `company` + `audit_date` (1), example prompts (3), scoreboard rates + `disc_gap`/`assess_gap` insights + `run_disclosure` footer (6), share-of-voice + cited-domain rows with their insights (7), `dim_*` counts (9), `score_access/identity/content/reputation` lever rollups (10), `best_lever/dim/rationale_1..4` (11), `worst_lever/dim/rationale_1..4` (12), `fix_label_1..3` + `fix_1..3` (13), static CTA closer (14). The fill may emit fields a given master doesn't carry — unmatched tokens are skipped harmlessly. Rules for the master:
 - Keep all share-of-voice rows **neutral** (no baked accent color). The fill paints the audited brand's row, because its rank changes per company.
 - Scoreboard insight lines stay `Insight: [[disc_gap]]` and `Insight: [[assess_gap]]` (static prefix + token).
 - Every rate/score cell, including ones that may be blank for some companies, should carry its `[[token]]` so the cell styling is consistent.
@@ -31,7 +31,7 @@ The Canva master ("AI Visibility Report", 13 slides, whose design id you resolve
 
 ## Step 2 — Clone the master
 
-`search-designs` for "GEO Audit Report" → the master design id. `copy-design(master_id, page_numbers [1,2,3,4,5,6,7,8,9])` → the clone (the nine real slides; the Canva auto "reference page" is excluded). **Never edit the master itself** — always work on the clone.
+`search-designs` for "AI Visibility Report" → the master design id. `copy-design(master_id, page_numbers [1..14])` → the clone (14 pages; any parked reference pages beyond 14 stay out of every clone). **Never edit the master itself** — always work on the clone.
 
 ## Step 3 — Open the clone
 

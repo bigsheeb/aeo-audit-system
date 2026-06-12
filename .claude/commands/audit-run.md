@@ -12,7 +12,7 @@ Read `.claude/context/aeo-audit-framework.md`. Confirm `OPENROUTER_API_KEY` is s
 
 ## Step 1 — Sync approved prompts
 
-Pull the operator-approved prompts + per-criterion rubric (id / text / weight / kill, and per-prompt `runs`) into `companies/<slug>/prompts.json`. In the production system these live in a Notion table the operator edits at Gate 1; locally, editing prompts.json directly is equivalent. If Gate 1 isn't approved, STOP.
+Pull the operator-approved prompts + per-criterion rubric (id / text / weight / kill, per-prompt `runs`, and the comparison tags `is_comparison`/`named_rival` that drive the head-to-head win/tie/loss verdict) into `companies/<slug>/prompts.json`. In the production system these live in Notion tables the operator edits at Gate 1; locally, editing prompts.json directly is equivalent. If Gate 1 isn't approved, STOP.
 
 ## Step 2 — Run the surfaces under test
 
