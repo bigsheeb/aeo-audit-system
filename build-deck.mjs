@@ -116,9 +116,12 @@ const DIM_LABEL = {
   third_party_mentions: "Third-Party Mentions", community_forums: "Community Forums",
 };
 // Character caps enforced on generated rationale text so it fits its slide frame.
-// rationale: slides 11/12 tables — 600px cells, ~60-70 chars/line, 3 lines before
-// the next row (rows ~113px apart, 24.7px line height). fix: slide 13 cards.
-const CAPS = { rationale: 200, fix: 160 };
+// rationale: slides 11/12 best/worst tables — ~648px cells render ~55 chars/line,
+// and each row cleanly holds 2 lines before it crosses the grid line into the next
+// row (rows ~125px apart). 110 keeps the longest rationale at ~2 lines. The text
+// rows have no per-row shape to pin (unlike slide 3 cards), so this cap IS the fix.
+// fix: slide 13 cards.
+const CAPS = { rationale: 110, fix: 160 };
 // Sentence-boundary trim: pack whole sentences up to the cap (greedy), accept any
 // boundary past 25% of the cap so a short clean first sentence beats a long
 // mid-thought "..." cut. Word-boundary "..." only when even sentence 1 overruns.
@@ -127,7 +130,7 @@ const trimAt = (s, n) => {
   if (s.length <= n) return s;
   const cut = s.slice(0, n + 1);
   const end = Math.max(...[". ", "! ", "? ", "; "].map((b) => cut.lastIndexOf(b)));
-  if (end >= Math.ceil(n / 4)) return cut.slice(0, end + 1).trim();
+  if (end >= Math.ceil(n / 4)) return cut.slice(0, end + 1).trim().replace(/[;,]$/, "");
   return (s.slice(0, n - 3).replace(/\s+\S*$/, "") + "...").trim();
 };
 
