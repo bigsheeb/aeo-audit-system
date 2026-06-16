@@ -4,8 +4,6 @@
 
 By Patrick Kemp / [Lobo Growth](https://lobogrowth.com). This is the public mirror of the system — no client data. The worked example (`companies/northwind/`) is a fully synthetic company.
 
-![Agent system](agent-system-preview.png)
-
 ## Abstract
 
 An agentic system that:
