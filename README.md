@@ -1,8 +1,8 @@
-# AI Visibility Audit
+# GEO Measurement System
 
-> Lobo Growth's method of measuring and improving how AI represents its clients.
+> A method of measuring and improving how AI represents its clients.
 
-By Patrick Kemp / [Lobo Growth](https://lobogrowth.com). This is the public mirror of the system — no client data. The worked example (`companies/northwind/`) is a fully synthetic company.
+By Patrick Kemp / [pkemp.ai](https://pkemp.ai). This is a public version of the system I use with clients sans client data. The worked example (`companies/northwind/`) is a fully synthetic company.
 
 ## Abstract
 
