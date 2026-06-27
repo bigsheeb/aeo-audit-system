@@ -1,11 +1,12 @@
 {
-  "name": "aeo-audit-system",
+  "name": "geo-measurement",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AEO/GEO (AI-search) audit system by Lobo Growth. Surfaces under test via OpenRouter; deterministic local JSONL compute layer; LLM judgment agents; optional Notion gates.",
+  "description": "GEO Measurement System: measures and improves how a company is represented by LLMs in the prompts its buyers use (for B2B startups). Surfaces under test via OpenRouter; deterministic local JSONL compute layer; LLM judgment agents; optional Notion gates. By Lobo Growth.",
   "author": "Patrick Kemp <patrick@lobogrowth.com> (https://lobogrowth.com)",
   "license": "MIT",
+  "engines": { "node": ">=20" },
   "scripts": {
     "test": "node --test lib/*.test.mjs",
     "test:surfaces": "node run-prompts.mjs northwind"

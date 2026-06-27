@@ -208,7 +208,7 @@ Renders the data into one flowing HTML page — cover, method, what we measured,
 
 ## Scripts
 
-Deterministic, key-free Node (native `fetch`, no dependencies). Phase order, top to bottom.
+Deterministic, key-free Node (native `fetch`, no dependencies; requires Node >=20). Phase order, top to bottom.
 
 | Script | Does | Writes |
 |--------|------|--------|
