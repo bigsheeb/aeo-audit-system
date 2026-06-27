@@ -7,6 +7,7 @@
   "author": "Patrick Kemp <patrick@lobogrowth.com> (https://lobogrowth.com)",
   "license": "MIT",
   "scripts": {
+    "test": "node --test lib/*.test.mjs",
     "test:surfaces": "node run-prompts.mjs northwind"
   }
 }

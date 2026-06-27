@@ -14,6 +14,13 @@ import { SURFACES } from "./lib/surfaces.mjs";
 import { querySurface } from "./lib/openrouter.mjs";
 
 const company = process.argv[2] ?? "northwind";
+// Refuse to run without a key rather than firing every prompt at an unauthorized
+// surface and overwriting raw_responses.jsonl with error rows. This script makes
+// live, metered OpenRouter calls — it is not the unit-test runner (`npm test`).
+if (!process.env.OPENROUTER_API_KEY) {
+  console.error("OPENROUTER_API_KEY is not set. run-prompts.mjs makes live, metered surface calls; set the key first. (For the deterministic test suite, run `npm test`.)");
+  process.exit(1);
+}
 const root = dirname(fileURLToPath(import.meta.url));
 const promptsPath = `${root}/companies/${company}/prompts.json`;
 const outPath = `${root}/companies/${company}/raw_responses.jsonl`;
