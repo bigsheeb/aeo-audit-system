@@ -32,8 +32,8 @@ const [ctx, metrics, findings, prompts, overrides] = await Promise.all([
   load("context.json"), load("metrics.json"), load("findings.json"),
   load("prompts.json"), loadOpt("deck-overrides.json"),
 ]);
-// v2.3 lever/element data (new master, slides 3/9/10/11/12). Optional so the
-// builder still works for pre-v2.2 companies that only have the three buckets.
+// v2.3 lever/element data. Optional so the builder still works for pre-v2.2
+// companies that only have the three buckets.
 const levers = await loadOpt("levers.json");
 const classifiedRows = await (async () => {
   try { return (await readFile(`${dir}/classified.jsonl`, "utf8")).split("\n").filter(Boolean).map((l) => JSON.parse(l)); }
@@ -65,7 +65,7 @@ const tokens = {
   assess_example_prompt: firstPrompt("assessment"),
   disc_mention: pct(metrics.by_track.discoverability.mention_rate),
   disc_citation: pct(metrics.by_track.discoverability.citation_rate),
-  // Deck numbers come from the deterministic metrics compute, never from the
+  // Report numbers come from the deterministic metrics compute, never from the
   // stager's prose. Fallback to findings only for pre-upgrade companies.
   disc_performance: perf(metrics.performance?.discoverability?.blended_avg ?? findings.discoverability.avg_performance),
   assess_mention: pct(metrics.by_track.assessment.mention_rate),
@@ -84,7 +84,7 @@ const ranked = sovRanked();
 const nDisc = metrics.share_of_voice.n_discoverability || 1;
 const cited = (metrics.top_cited_domains?.discoverability || []).slice(0, 6);
 
-// ---- v2.3 tokens for the new master (slides 3, 9, 10, 11, 12) ----
+// ---- v2.3 tokens for the report ----
 const LEVER_LABEL = { access: "Access", identity: "Identity", content: "Content", reputation: "Reputation" };
 const DIM_LABEL = {
   ai_crawler_access: "AI Crawler Access", search_index_presence: "Search Index Presence",
@@ -103,7 +103,7 @@ const DIM_LABEL = {
 // Overflow caps. The report flows (CSS wraps text in its own cells), so these are
 // NON-DESTRUCTIVE WARN thresholds only — "this string is unusually long, eyeball
 // it," not a slice. Client prose is authored to length in the stager and gated by
-// prose-lint; nothing here truncates it. (Generous, report-sized, not slide-sized.)
+// prose-lint; nothing here truncates it. (Generous, report-sized.)
 const CAPS = { rationale: 240, fix: 320 };
 // First clean sentence — the FALLBACK for a best/worst rationale when the stager
 // has not authored a client-voice line for that element. Never cuts mid-word; it
@@ -130,27 +130,27 @@ for (const [lev, obj] of Object.entries(levers.levers ?? {})) {
       rationale: e.rationale ?? "", importance: imp, priority: e.priority ?? 0, verify_first: e.verify_first === true });
   }
 }
-// Operator call 2026-06-11: reddit is measured internally but never surfaced on
-// deck tables or fixes (unobservable too often, and the fix is a rabbit hole).
-const DECK_EXCLUDED = new Set(["reddit"]);
-const deckEls = els.filter((e) => !DECK_EXCLUDED.has(e.id));
+// Operator call 2026-06-11: reddit is measured internally but never surfaced in
+// report tables or fixes (unobservable too often, and the fix is a rabbit hole).
+const REPORT_EXCLUDED = new Set(["reddit"]);
+const reportEls = els.filter((e) => !REPORT_EXCLUDED.has(e.id));
 
 // Direction guards: the best table only carries genuinely good scores (>=4) and
 // the worst table only genuinely bad ones (<=2). Mid scores (3) headline neither.
 // When a client skews one way, unfilled rows render "N/A" instead of borrowing
 // findings from the wrong direction.
-const best4 = deckEls.filter((e) => e.score >= 4)
+const best4 = reportEls.filter((e) => e.score >= 4)
   .sort((a, b) => b.score - a.score || b.importance - a.importance).slice(0, 4);
-const worst4 = deckEls.filter((e) => !e.verify_first && e.score <= 2)
+const worst4 = reportEls.filter((e) => !e.verify_first && e.score <= 2)
   .sort((a, b) => a.score - b.score || b.priority - a.priority).slice(0, 4);
 const dimCount = (label) => els.filter((e) => e.lever === label).length;
-// Lever rollup scores (slide 10 scoreboard). One decimal on the 0-5 scale;
+// Lever rollup scores (the scoreboard). One decimal on the 0-5 scale;
 // empty for pre-v2.2 companies without levers.json, matching the dim_* pattern.
 const leverScore = (k) => (typeof levers.levers?.[k]?.score === "number" ? levers.levers[k].score.toFixed(1) : "");
 
 // Top-3 fixes by priority (importance x gap), deduped by element, max across the two tracks.
 const prio = [...(levers.priorities?.discoverability ?? []), ...(levers.priorities?.assessment ?? [])]
-  .filter((p) => !DECK_EXCLUDED.has(p.element));
+  .filter((p) => !REPORT_EXCLUDED.has(p.element));
 const fixTop = [...new Map(prio.sort((a, b) => b.priority - a.priority).map((p) => [p.element, p])).values()].slice(0, 3);
 
 const nPrompts = (t) => prompts.filter((p) => p.track === t).length;
@@ -174,7 +174,7 @@ const reportData = {
       [`fix_label_${n}`, el ? `${el.lever} - ${el.label}` : ""],
     ];
   })),
-  // v2.3 tokens: prompt/response counts (slide 3), dimension counts (slide 9), lever scores (slide 10), best/worst tables (slides 11-12), fixes (slide 13)
+  // v2.3 tokens: prompt/response counts, dimension counts, lever scores, best/worst tables, fixes
   disc_prompt_number: String(nPrompts("discoverability") || ""),
   assess_prompt_number: String(nPrompts("assessment") || ""),
   disc_response_number: String(nResponses("discoverability") || ""),
@@ -210,7 +210,7 @@ const reportData = {
 
 // Overflow WARN thresholds (non-destructive — the flowing report wraps text; this
 // only flags an unusually long string to eyeball). Sized for the in-page report,
-// not the retired slide cells.
+// the flowing report has no fixed cells.
 const LIMITS = {
   company: 40, audit_date: 24,
   disc_example_prompt: 200, assess_example_prompt: 200,

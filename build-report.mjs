@@ -6,11 +6,10 @@
 //   node build-report.mjs <slug>
 //
 // All report CSS is scoped under `.aeo-report` and the content lives in a single
-// `<div class="aeo-report">`, so build-page.mjs can lift the scoped <style> and
-// that div straight into templates/landing.html without colliding with the
-// wrapper's own styles. report.html is also a complete, standalone-previewable
-// page (the <style id="aeo-base"> block paints bg/grain/font for that case;
-// build-page.mjs ignores it and lets the landing wrapper provide those).
+// `<div class="aeo-report">`, so the scoped <style> and that div can be lifted
+// into a host page without colliding with the host's own styles. report.html is
+// the deliverable: a complete, standalone page (the <style id="aeo-base"> block
+// paints bg/grain/font so it stands on its own; a host wrapper can ignore it).
 //
 // Static copy (method steps, design principles, metric explainers, lever
 // questions, CTA) is constant here. Every number, table, insight, and fix comes
@@ -103,8 +102,8 @@ const leverRows = LEVER_ROWS
   .join("\n");
 
 // ---- styles ----
-// Standalone-only: paints body bg/grain/font so report.html previews on its own.
-// build-page.mjs drops this block (the landing wrapper supplies bg/grain/font).
+// Standalone-only: paints body bg/grain/font so report.html stands on its own.
+// A host wrapper that supplies its own bg/grain/font can drop this block.
 const AEO_BASE = `
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -112,7 +111,7 @@ const AEO_BASE = `
   body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:99; opacity:0.022;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}`;
 
-// Scoped report styles — lifted verbatim into the landing wrapper by build-page.mjs.
+// Scoped report styles — safe to lift verbatim into a host wrapper.
 const AEO_STYLE = `
   .aeo-report{
     --bg:#0F1117; --bg-card:#16181F; --bg-card-2:#1A1D26;

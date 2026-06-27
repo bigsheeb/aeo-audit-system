@@ -72,7 +72,7 @@ Each command stops at its gate; nothing auto-advances.
   scores); `score-levers.mjs` scores over the frozen ledgers, mechanically where
   possible, judged at temp 0 against written anchors where not.
 - Importance x gap ranks every fix; indeterminate checks land in `verify_first`
-  and are never prescribed. Reddit is measured but never surfaced on deck
+  and are never prescribed. Reddit is measured but never surfaced in report
   tables or prescribed as a fix.
 - Brand disambiguation: prep pins the entity on the domain and halts if it
   can't; collision-prone names use "the company X" phrasing — a wrong-entity

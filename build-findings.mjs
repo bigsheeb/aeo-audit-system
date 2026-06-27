@@ -1,6 +1,6 @@
 // Findings renderer — the rich, single-source "how did this company do" doc.
 // Deterministic stitch of the run's artifacts into companies/<slug>/findings.md,
-// NOT constrained to the deck's slide caps. Two zones:
+// NOT constrained to fixed length caps. Two zones:
 //   - Above the fold: the Gate-2 operator summary (verdict, headline numbers,
 //     major findings, and an explicit "Inspect before approving" callout drawn
 //     from the run's flag inventory).
@@ -31,7 +31,7 @@ const reviewQueue = (await loadOpt("review-queue.json")) ?? [];
 const company = ctx.company ?? slug;
 // Defensive: upstream artifacts are written em-dash-free by spec; strip any stragglers
 // so the doc passes prose-lint (which gates on em/en dashes).
-// strip em/en dashes and spaced double-hyphens (the deck linter and the house
+// strip em/en dashes and spaced double-hyphens (the prose linter and the house
 // voice both reject them); the renderer itself emits none either.
 const clean = (s) => String(s ?? "").replace(/[—–]/g, ", ").replace(/\s*--\s*/g, ", ").replace(/\s+$/g, "");
 const DASH = "-"; // null-cell placeholder, single hyphen (not an em dash)
