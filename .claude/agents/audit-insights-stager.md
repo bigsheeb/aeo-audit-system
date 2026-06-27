@@ -50,7 +50,7 @@ Write `companies/<slug>/findings.json`:
 }
 ```
 
-Also write `companies/<slug>/deck-overrides.json` with EXACTLY these keys (the builder reads them verbatim; caps in parentheses, `build-deck.mjs` warns on overflow):
+Also write `companies/<slug>/deck-overrides.json` with EXACTLY these keys (the builder reads them verbatim; caps in parentheses, `build-report-data.mjs` warns on overflow):
 
 ```json
 {

@@ -1,18 +1,20 @@
-// Deck fill builder — deterministic, key-free, no deps. Produces
-// companies/<slug>/canva-fill.json: the flat token -> string dataset the Canva
-// master ("AI Visibility Report", 14 pages) is filled with by
-// /audit-report. The old Gamma deck.md path is retired.
+// Report-data builder — deterministic, key-free, no deps. Produces
+// companies/<slug>/report-data.json: the flat token -> string dataset that
+// build-report.mjs renders into the in-page HTML report. (Formerly build-deck.mjs
+// -> canva-fill.json, named for a retired Canva master; the deck path is gone and
+// the report is plain HTML.) Only the tokens build-report actually renders are
+// emitted; the rest of the legacy token set is dropped.
 //
-//   node build-deck.mjs <slug>
+//   node build-report-data.mjs <slug>
 //
 // Two kinds of token:
-//   - mechanical (rates, scores, SOV, cited domains, prompt counts, dimension
-//     counts, best/worst tables, fix labels) resolve straight from the company
-//     JSONs (metrics, levers, prompts, classified).
+//   - mechanical (rates, scores, SOV, cited domains, dimension counts, best/worst
+//     tables, fix labels) resolve straight from the company JSONs (metrics,
+//     levers, prompts, classified).
 //   - editorial one-liners (gap callouts, insights, fix prose) come from
 //     companies/<slug>/deck-overrides.json (insights-stager) so they stay tight
 //     and on-voice. fix_target_1..3 pin which elements the fixes address.
-// Missing REQUIRED values abort (exit 1) — a deck never ships with a hole.
+// Missing REQUIRED values abort (exit 1) — the report never ships with a hole.
 // Run prose-lint.mjs on deck-overrides.json as the copy gate.
 
 import { readFile, writeFile } from "node:fs/promises";
@@ -20,7 +22,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const slug = process.argv[2];
-if (!slug) throw new Error("usage: node build-deck.mjs <slug>");
+if (!slug) throw new Error("usage: node build-report-data.mjs <slug>");
 const root = dirname(fileURLToPath(import.meta.url));
 const dir = `${root}/companies/${slug}`;
 const load = async (f) => JSON.parse(await readFile(`${dir}/${f}`, "utf8"));
@@ -89,9 +91,9 @@ const tokens = {
   ...Object.fromEntries(editorial.map((k) => [k, overrides[k]])),
 };
 
-// Canva autofill dataset — flat field -> string. Carries both joined list strings
-// and exploded per-item fields, so the hand-built master can use whichever
-// granularity each slide needs. All formatting is done here; Canva renders verbatim.
+// Resolved token dataset — flat field -> string. Built as a superset (joined list
+// strings + exploded per-item fields) for validation; the write step below emits
+// only the subset build-report.mjs renders. All formatting is done here.
 const padN = (a, n) => a.concat(Array(Math.max(0, n - a.length)).fill("")).slice(0, n);
 const ranked = sovRanked();
 const nDisc = metrics.share_of_voice.n_discoverability || 1;
@@ -170,7 +172,7 @@ const nPrompts = (t) => prompts.filter((p) => p.track === t).length;
 const nResponses = (t) => classifiedRows.filter((r) => r.track === t).length;
 const surfacesSeen = [...new Set(classifiedRows.map((r) => r.surface))];
 
-const canvaFill = {
+const reportData = {
   company: tokens.company, audit_date: tokens.audit_date,
   disc_example_prompt: tokens.disc_example_prompt, assess_example_prompt: tokens.assess_example_prompt,
   disc_mention: tokens.disc_mention, disc_citation: tokens.disc_citation, disc_performance: tokens.disc_performance,
@@ -206,14 +208,14 @@ const canvaFill = {
     const e = best4[i]; // N/A fill when fewer than 4 elements clear the >=4 bar
     return [
       [`best_lever_${i + 1}`, e?.lever ?? "N/A"], [`best_dim_${i + 1}`, e?.label ?? "N/A"],
-      [`best_score_${i + 1}`, e ? String(e.score) : "N/A"], [`best_rationale_${i + 1}`, e ? deDash(trimAt(e.rationale, CAPS.rationale)) : "N/A"],
+      [`best_score_${i + 1}`, e ? String(e.score) : "N/A"], [`best_rationale_${i + 1}`, overrides[`best_rationale_${i + 1}`] ?? (e ? deDash(trimAt(e.rationale, CAPS.rationale)) : "N/A")],
     ];
   })),
   ...Object.fromEntries([0, 1, 2, 3].flatMap((i) => {
     const e = worst4[i]; // N/A fill when fewer than 4 elements sit at <=2
     return [
       [`worst_lever_${i + 1}`, e?.lever ?? "N/A"], [`worst_dim_${i + 1}`, e?.label ?? "N/A"],
-      [`worst_score_${i + 1}`, e ? String(e.score) : "N/A"], [`worst_rationale_${i + 1}`, e ? deDash(trimAt(e.rationale, CAPS.rationale)) : "N/A"],
+      [`worst_score_${i + 1}`, e ? String(e.score) : "N/A"], [`worst_rationale_${i + 1}`, overrides[`worst_rationale_${i + 1}`] ?? (e ? deDash(trimAt(e.rationale, CAPS.rationale)) : "N/A")],
     ];
   })),
   sov_table: tokens.sov_table, top_cited_domains: tokens.top_cited_domains,
@@ -243,18 +245,27 @@ const LIMITS = {
   ])),
 };
 const over = Object.keys(LIMITS)
-  .filter((k) => typeof canvaFill[k] === "string" && canvaFill[k].length > LIMITS[k])
-  .map((k) => `${k} ${canvaFill[k].length}/${LIMITS[k]}`);
+  .filter((k) => typeof reportData[k] === "string" && reportData[k].length > LIMITS[k])
+  .map((k) => `${k} ${reportData[k].length}/${LIMITS[k]}`);
 if (over.length) console.warn(`! over character cap (clips in fixed frames): ${over.join(", ")}`);
 
-// A deck never ships with a hole: these must resolve from deck-overrides.json
-// (editorial) or levers.json (fix fallbacks) before the Canva fill runs.
+// The report never ships with a hole: these must resolve from deck-overrides.json
+// (editorial) or levers.json (fix fallbacks) before the report renders.
 const REQUIRED = ["company", "audit_date", "disc_gap", "assess_gap", "cited_insight", "sov_insight", "fix_1", "fix_2", "fix_3"];
-const missing = REQUIRED.filter((k) => !canvaFill[k]);
+const missing = REQUIRED.filter((k) => !reportData[k]);
 if (missing.length) {
-  console.error(`Missing required deck values: ${missing.join(", ")} — fill deck-overrides.json (or run score-levers.mjs for fix fallbacks).`);
+  console.error(`Missing required report values: ${missing.join(", ")} — fill deck-overrides.json (or run score-levers.mjs for fix fallbacks).`);
   process.exit(1);
 }
 
-await writeFile(`${dir}/canva-fill.json`, JSON.stringify(canvaFill, null, 2) + "\n");
-console.log(`canva -> ${dir}/canva-fill.json  (${Object.keys(canvaFill).length} fields, ${over.length} over cap)`);
+// Emit only the tokens build-report.mjs renders. The retired Canva master
+// consumed a much larger flat token set (exploded SOV/cited forms, per-dimension
+// sub-scores, prompt/response counts); the in-page HTML report reads ~86 of them.
+// Dropping the rest keeps report-data.json to exactly what ships. Validation
+// (LIMITS/REQUIRED above) still runs against the full resolved set.
+const KEEP = new Set(["company", "logo", "run_disclosure", "audit_date", "disc_example_prompt", "assess_example_prompt", "disc_mention", "disc_citation", "disc_performance", "disc_gap", "assess_mention", "assess_citation", "assess_performance", "assess_gap", "sov_insight", "cited_insight", "dim_total", "score_access", "score_identity", "score_content", "score_reputation"]);
+const KEEP_RE = /^(sov_label|sov_pct|cited_host|cited_rate)_\d+$|^(best|worst)_(lever|dim|score|rationale)_\d+$|^fix_\d+$|^fix_label_\d+$/;
+const emit = Object.fromEntries(Object.entries(reportData).filter(([k]) => KEEP.has(k) || KEEP_RE.test(k)));
+
+await writeFile(`${dir}/report-data.json`, JSON.stringify(emit, null, 2) + "\n");
+console.log(`report-data -> ${dir}/report-data.json  (${Object.keys(emit).length} fields, ${over.length} over cap)`);

@@ -1,7 +1,7 @@
 // Report builder — deterministic, key-free, no deps. Renders the flowing in-page
 // AI-visibility report (the vertical successor to the Canva deck) from the same
-// data contract the deck used: companies/<slug>/canva-fill.json (built by
-// build-deck.mjs) + context.json. Writes companies/<slug>/report.html.
+// data contract the deck used: companies/<slug>/report-data.json (built by
+// build-report-data.mjs) + context.json. Writes companies/<slug>/report.html.
 //
 //   node build-report.mjs <slug>
 //
@@ -14,7 +14,7 @@
 //
 // Static copy (method steps, design principles, metric explainers, lever
 // questions, CTA) is constant here. Every number, table, insight, and fix comes
-// from canva-fill.json — change wording in the stager (deck-overrides.json), not
+// from report-data.json — change wording in the stager (deck-overrides.json), not
 // here.
 
 import { readFile, writeFile } from "node:fs/promises";
@@ -28,9 +28,9 @@ const dir = `${root}/companies/${slug}`;
 
 let cf, ctx;
 try {
-  cf = JSON.parse(await readFile(`${dir}/canva-fill.json`, "utf8"));
+  cf = JSON.parse(await readFile(`${dir}/report-data.json`, "utf8"));
 } catch {
-  console.error(`Missing ${dir}/canva-fill.json — run \`node build-deck.mjs ${slug}\` first.`);
+  console.error(`Missing ${dir}/report-data.json — run \`node build-report-data.mjs ${slug}\` first.`);
   process.exit(1);
 }
 try { ctx = JSON.parse(await readFile(`${dir}/context.json`, "utf8")); } catch { ctx = {}; }
@@ -431,7 +431,7 @@ ${BODY}
 const REQUIRED = { company, audit_date: cf.audit_date, disc_gap: cf.disc_gap, assess_gap: cf.assess_gap };
 const missing = Object.entries(REQUIRED).filter(([, v]) => !v).map(([k]) => k);
 if (missing.length) {
-  console.error(`Missing required report values: ${missing.join(", ")} — check deck-overrides.json / canva-fill.json.`);
+  console.error(`Missing required report values: ${missing.join(", ")} — check deck-overrides.json / report-data.json.`);
   process.exit(1);
 }
 

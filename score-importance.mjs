@@ -10,7 +10,7 @@
 //     This is the artifact the AEO Lever Scorecard exporter and the fix brief read.
 //   - merges importance / local_evidence / priority / verify_first back into
 //     levers.json (per element) and priorities / verify_first / importance_config
-//     (top-level) so build-deck.mjs and the stager keep reading levers.json unchanged.
+//     (top-level) so build-report-data.mjs and the stager keep reading levers.json unchanged.
 //
 //   node score-importance.mjs <slug>
 
