@@ -15,7 +15,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { stripTags, internalLinks, sitemapLocs } from "./lib/html.mjs";
+import { stripTags, internalLinks, sitemapLocs, tagAttr } from "./lib/html.mjs";
 
 const slug = process.argv[2];
 if (!slug) throw new Error("usage: node site-checks.mjs <slug> [domain]");
@@ -92,6 +92,16 @@ const proseDate = (text) => {
   const mo = MONTHS[m[1].toLowerCase()];
   return mo ? `${m[3]}-${String(mo).padStart(2, "0")}-${String(+m[2]).padStart(2, "0")}` : null;
 };
+// Machine-readable publish date — far more reliable than prose scanning, which a
+// site-wide dated promo banner near the top of every page can poison. Prefer
+// OpenGraph article:published_time, JSON-LD datePublished, itemprop, or a <time>
+// element; fall back to prose only when none are present.
+const isoDay = (s) => String(s || "").match(/(20\d{2})-(\d{2})-(\d{2})/)?.[0] ?? null;
+const structuredDate = (html) =>
+  isoDay(html.match(/<meta[^>]+(?:property|name|itemprop)=["'](?:article:published_time|datePublished|publishdate|publish_date|publish-date)["'][^>]+content=["']([^"']+)["']/i)?.[1]) ??
+  isoDay(html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name|itemprop)=["'](?:article:published_time|datePublished)["']/i)?.[1]) ??
+  isoDay(/"datePublished"\s*:\s*"([^"]+)"/i.exec(html)?.[1]) ??
+  isoDay(html.match(/<time[^>]+datetime=["']([^"']+)["']/i)?.[1]);
 const MKT = /\b(industry[- ]?leading|best[- ]in[- ]class|world[- ]?class|cutting[- ]?edge|state[- ]of[- ]the[- ]art|next[- ]?gen(?:eration)?|revolutionary|game[- ]?chang(?:ing|er)|seamless(?:ly)?|frictionless|turnkey|robust|leverages?|empower(?:s|ing)?|unlock(?:s|ing)?|mission[- ]?critical|end[- ]to[- ]end|innovat(?:ive|ion)|transformat(?:ive|ion)|bleeding[- ]?edge|paradigm|synerg\w*|holistic|unparalleled|premier|enterprise[- ]?grade|powerful|effortless|supercharge\w*)\b/gi;
 const marketingDensity = (text) => {
   const words = text.split(/\s+/).filter(Boolean).length;
@@ -228,30 +238,132 @@ if (pages.length <= 1) {
   console.warn(`!! sample collapsed to ${pages.length} page (no about/pricing/blog/nav pages discovered). crawl_coverage and content_engine facts will be unreliable. Check homepage nav parsing and sitemap.xml.`);
 }
 
-// blog: pull last 12 post links from the blog index
-let posts = [];
-const blogIndex = pages.find((p) => blogPath && p.url === origin + blogPath);
-if (blogIndex) {
-  const blogRes = await get(blogIndex.url);
-  const links = [...internalLinks(blogRes.html, origin, domain).keys()]
-    .filter((p) => blogPath && p.startsWith(blogPath + "/") && p.length > blogPath.length + 1)
-    .slice(0, 12);
-  for (const p of links) {
-    const res = await get(origin + p);
-    const a = analyzePage(origin + p, res);
+// content engine: discover MULTIPLE content surfaces, freshness-gate them, and
+// pool the most-recent items into one dated stream. A single-blog-path crawl is
+// brittle on real sites: content spreads across /articles, /resources, /blog, a
+// thin /newsroom press feed, campaign hubs (e.g. /ai-plays), and often a STALE
+// legacy blog.<domain> subdomain whose huge dead archive would win on raw volume.
+// We rank by FRESH, dated items so an old archive can never set the cadence, and
+// degrade to the single freshest surface for simple one-blog sites.
+const CONTENT_FRESH_MONTHS = 18;             // an item is "live" if dated within this window
+const CONTENT_MONTH_MS = 2.592e9;            // 30 days
+const SAMPLE_PER_SURFACE = 6, MAX_SURFACES = 5;
+const apexHost = origin.replace(/^https?:\/\//, "");
+const bareHost = (h) => h.replace(/^www\./, "");
+// post-like links from an index page: same registrable host (www/apex folded),
+// deeper than the index path, excluding taxonomy/pagination/feed paths.
+const postLinksFrom = (html, indexUrl) => {
+  const idx = new URL(indexUrl);
+  const idxSegs = idx.pathname.replace(/\/$/, "").split("/").filter(Boolean); // [] for a root index, ["articles"] for /articles
+  const out = new Set();
+  for (const m of html.matchAll(/<a\b([^>]*)>/gi)) {
+    let href = tagAttr("<a" + m[1] + ">", "href");
+    if (!href) continue;
+    href = href.trim().replace(/[#?].*$/, "");
+    if (!href || /^(mailto:|tel:|javascript:)/i.test(href)) continue;
+    if (href.startsWith("//")) href = "https:" + href;
+    try {
+      const u = href.startsWith("http") ? new URL(href) : new URL(href, idx.origin + "/");
+      if (bareHost(u.host) !== bareHost(idx.host)) continue;               // same site (fold www/apex); keeps blog.* distinct
+      const segs = u.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+      if (segs.length <= idxSegs.length) continue;                         // must be deeper than the index
+      // must live UNDER the index path (prefix match) — not just anywhere deeper on the
+      // site, else a /articles index would scoop up /platform/* mega-nav links.
+      if (idxSegs.some((seg, i) => (segs[i] || "").toLowerCase() !== seg.toLowerCase())) continue;
+      const child = segs[idxSegs.length];
+      if (/^(category|categories|tag|tags|author|authors|page|topics?|search|rss|feed|subscribe)$/i.test(child || "")) continue;
+      out.add(u.origin + "/" + segs.join("/"));
+    } catch {}
+  }
+  return [...out];
+};
+
+// candidate content indexes: a fixed seed of common content paths, plus any
+// nav/sitemap path that looks content-y, plus common content subdomains (probed
+// but never trusted over a fresh apex surface — the legacy-blog trap).
+const CONTENT_SEED = ["/articles", "/blog", "/resources", "/insights", "/news", "/newsroom", "/learn", "/guides", "/library", "/stories", "/playbooks", "/plays", "/ai-plays", "/academy"];
+const navContent = [...nav.keys()].filter((p) => /(^|\/)(blog|articles?|resources?|insights?|news|newsroom|learn|guides?|librar|stories|playbook|plays|academy)(\/|$)/i.test(p));
+const contentCandidates = [...new Set([
+  ...CONTENT_SEED.map((p) => origin + p),
+  ...navContent.map((p) => origin + p),
+  `https://blog.${domain}/`, `https://resources.${domain}/`,
+])];
+
+// probe each candidate index (cheap: one GET each); record reachable surfaces.
+const surfacesFound = [];
+for (const idx of contentCandidates) {
+  const r = await get(idx);
+  if (!r.ok) continue;
+  const links = postLinksFrom(r.html, idx);
+  if (!links.length) continue;
+  const isSub = bareHost(new URL(idx).host) !== bareHost(apexHost);
+  surfacesFound.push({ index: idx, host: new URL(idx).host, isSub, links });
+  console.log(`-> content surface ${idx} ... ${r.status} (${links.length} item links${isSub ? ", subdomain" : ""})`);
+}
+
+// deep-sample LEAF posts to get dates/bylines. Prefer apex surfaces; only
+// deep-sample a subdomain when no apex surface yielded links (don't pay for a
+// dead blog.*). Many content hubs link to SECTION/category pages first (e.g.
+// /articles/ai, /guides/build) which are themselves indexes, not posts — and
+// they carry a uniform template date that would poison the cadence signal. We
+// skip them: an index/section page links to many same-surface siblings, a leaf
+// article links to few. This is a universal blog shape, not a per-site hack.
+const INDEX_LINK_THRESHOLD = 12, MAX_SCAN_PER_SURFACE = 14;
+const apexSurfaces = surfacesFound.filter((s) => !s.isSub);
+const toSample = (apexSurfaces.length ? apexSurfaces : surfacesFound)
+  .sort((a, b) => b.links.length - a.links.length).slice(0, MAX_SURFACES);
+let pooled = [];
+for (const s of toSample) {
+  let kept = 0;
+  for (const url of s.links.slice(0, MAX_SCAN_PER_SURFACE)) {
+    if (kept >= SAMPLE_PER_SURFACE) break;
+    const res = await get(url);
+    if (!res.ok) { await sleep(120); continue; }
+    if (postLinksFrom(res.html, s.index).length > INDEX_LINK_THRESHOLD) { await sleep(120); continue; } // a section/index page, not a post
+    const a = analyzePage(url, res);
     const text = stripTags(res.html);
-    posts.push({
-      url: a.url, status: a.status, title: a.title,
-      date: proseDate(text) ?? a.dates.at(-1) ?? null,
+    pooled.push({
+      url: a.url, status: a.status, title: a.title, surface: s.index,
+      date: structuredDate(res.html) ?? proseDate(text) ?? a.dates.at(-1) ?? null,
       byline: bylineOf(res.html, text, ctx.company),
       headings_count: a.headings.length,
       marketing_density: marketingDensity(text),
       word_count: text.split(/\s+/).filter(Boolean).length,
       excerpt: cleanExcerpt(text, a.title),
     });
+    kept++;
     await sleep(150);
   }
 }
+
+// freshness gate: a subdomain surface with ZERO in-window dated items is treated
+// as stale/legacy and dropped from the pool entirely (so a dead archive's volume
+// can never set cadence). Order the pool newest-first; undated items sort last.
+const nowMs = Date.now();
+const inWindow = (d) => { const t = new Date(d).getTime(); return !Number.isNaN(t) && t >= nowMs - CONTENT_FRESH_MONTHS * CONTENT_MONTH_MS; };
+const staleHosts = new Set(
+  toSample.filter((s) => s.isSub && !pooled.some((p) => p.surface === s.index && inWindow(p.date))).map((s) => s.host)
+);
+pooled = pooled.filter((p) => { try { return !staleHosts.has(new URL(p.url).host); } catch { return true; } });
+const ts = (p) => { const t = p.date ? new Date(p.date).getTime() : NaN; return Number.isNaN(t) ? -Infinity : t; };
+pooled.sort((a, b) => ts(b) - ts(a));
+
+const posts = pooled.slice(0, 15);
+// trust guard: if one date dominates the dated sample, the "date" is almost
+// certainly a site-wide template/banner stamp (not per-post publish dates), so
+// downstream must not read cadence from it. Reported; the scorer degrades.
+const datedPosts = posts.filter((p) => p.date);
+const modalDateCount = Object.values(datedPosts.reduce((c, p) => ((c[p.date] = (c[p.date] || 0) + 1), c), {})).reduce((m, n) => Math.max(m, n), 0);
+const datesReliable = !(datedPosts.length >= 4 && modalDateCount / datedPosts.length >= 0.6);
+const liveSurfaces = surfacesFound.filter((s) => !staleHosts.has(s.host));
+// archive_size = total distinct items discovered across LIVE surfaces — an
+// estimate of true archive depth used downstream for the maturity/nascent call
+// (so a deep, prolific engine is never mistaken for a brand-new blog).
+const archiveSize = liveSurfaces.reduce((n, s) => n + s.links.length, 0);
+const freshWindowCount = posts.filter((p) => inWindow(p.date)).length;
+const chosenBlogIndex = toSample.find((s) => !staleHosts.has(s.host))?.index ?? null;
+const contentSurfaces = surfacesFound.map((s) => ({ index: s.index, subdomain: s.isSub, item_links: s.links.length, stale: staleHosts.has(s.host) }));
+console.log(`content surfaces: ${liveSurfaces.length} live / ${surfacesFound.length} found | archive~${archiveSize} | pooled ${posts.length} (fresh ${freshWindowCount})${staleHosts.size ? ` | excluded stale: ${[...staleHosts].join(", ")}` : ""}`);
 
 // llms.txt (sitemap was fetched up front for nav backfill)
 const llms = await get(origin + "/llms.txt");
@@ -268,7 +380,7 @@ const facts = {
       ...pages.map((p) => ({ url: p.url, status: p.status })),
       ...posts.map((p) => ({ url: p.url, status: p.status, is_post: true })),
     ],
-    about_found: Boolean(aboutPage), pricing_found: Boolean(pricingPage), blog_found: Boolean(blogIndex),
+    about_found: Boolean(aboutPage), pricing_found: Boolean(pricingPage), blog_found: Boolean(chosenBlogIndex),
   },
   elements: {
     fetchability_no_js: {
@@ -282,7 +394,7 @@ const facts = {
         canonical_on_sample: pages.filter((p) => p.canonical).length + "/" + pages.length,
         homepage_og_type: pages[0]?.og_type ?? null,
         nav_paths_found: [...nav.keys()].slice(0, 25),
-        about_page: aboutPage?.url ?? null, pricing_page: pricingPage?.url ?? null, blog_index: blogIndex?.url ?? null,
+        about_page: aboutPage?.url ?? null, pricing_page: pricingPage?.url ?? null, blog_index: chosenBlogIndex,
       },
     },
     entity_schema: {
@@ -300,15 +412,20 @@ const facts = {
     llms_txt: { facts: { present: llmsReal, status: llms.status }, footnote: true },
     content_engine: {
       facts: {
-        blog_index: blogIndex?.url ?? null,
+        blog_index: chosenBlogIndex,
         sampled: posts.length,
+        archive_size: archiveSize,
+        fresh_window_count: freshWindowCount,
+        fresh_window_months: CONTENT_FRESH_MONTHS,
+        dates_reliable: datesReliable,
+        surfaces: contentSurfaces,
         posts: posts.map((p) => ({
-          url: p.url, title: p.title, date: p.date, byline: p.byline,
+          url: p.url, title: p.title, date: p.date, byline: p.byline, surface: p.surface,
           headings_count: p.headings_count, marketing_density: p.marketing_density,
           word_count: p.word_count, excerpt: p.excerpt,
         })),
       },
-      note: "frequency + bylines computed in score-elements (lib/content-engine.mjs); press|substantive classification + perspective/icp/structure/show-dont-tell judged there",
+      note: "multi-surface freshness-gated pool (stale subdomains excluded); frequency + bylines computed in score-elements (lib/content-engine.mjs) using archive_size for maturity; press|substantive + perspective/icp/structure/show-dont-tell judged there",
     },
   },
 };
