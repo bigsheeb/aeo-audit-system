@@ -23,6 +23,7 @@
 //     verdicts.jsonl, re-run this script + compute-metrics (free).
 
 import { readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,6 +40,12 @@ const readJsonl = async (f) =>
 
 const prompts = JSON.parse(await readFile(`${dir}/prompts.json`, "utf8"));
 const classified = await readJsonl("classified.jsonl");
+// verdicts.jsonl is the grader agent's output; if it is absent the run has not been
+// graded yet (the shipped sample carries graded.jsonl, this script's output, not its input).
+if (!existsSync(`${dir}/verdicts.jsonl`)) {
+  console.error(`Missing ${dir}/verdicts.jsonl — run the audit-performance-grader agent first; it emits the per-criterion verdicts this script validates and scores.`);
+  process.exit(1);
+}
 const verdicts = await readJsonl("verdicts.jsonl");
 
 // Rubric: tolerate both shapes — objects {id,text,weight,kill} (current) and
